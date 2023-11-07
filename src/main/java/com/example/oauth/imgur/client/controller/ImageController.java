@@ -42,7 +42,7 @@ import com.example.oauth.imgur.client.exception.UserAlreadyExistsException;
 import com.example.oauth.imgur.client.service.UserService;
 import com.example.oauth.imgur.client.service.UserServiceImpl;
 
-@RequestMapping("/image")
+@RequestMapping("/v1/image")
 @RestController
 public class ImageController {
 	
@@ -82,7 +82,7 @@ public class ImageController {
 	}
 	
 	@DeleteMapping("/{username}/{deleteHash}")
-	public String deleteImage(@PathVariable("deleteHash") String deleteHash,@PathVariable("username") String username) throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException {
+	public ResponseEntity<Object> deleteImage(@PathVariable("deleteHash") String deleteHash,@PathVariable("username") String username) throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException {
 		log.info("Deleting image with deleteHash : "+deleteHash);
 		if(this.userService.findByUsername(username)  == null) {
 			log.error("User Not Registered with User ID : " +username);
@@ -94,11 +94,11 @@ public class ImageController {
 		headers.add(AUTHORIZATION, "Bearer " + token);
 		HttpEntity<Void> request = new HttpEntity<>(headers);
 		ResponseEntity<Object> response = restTemplate.exchange(url, HttpMethod.DELETE, request, Object.class);
-		return response.getBody().toString();
+		return response;
 	}
 	
 	@PostMapping("/save/{username}")
-	public String uploadImage(@RequestParam("file") MultipartFile file,@PathVariable("username") String username) throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException, IOException {
+	public ResponseEntity<Object>  uploadImage(@RequestParam("file") MultipartFile file,@PathVariable("username") String username) throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException, IOException {
 		log.info("Saving image for user: "+username);
 		if(this.userService.findByUsername(username)  == null) {
 			throw new UsernameNotFoundException("User Not Registered with User ID : " +username +". Please register first.");
@@ -111,9 +111,9 @@ public class ImageController {
 			body.add("file", file.getBytes());
 			HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
 			RestTemplate restTemplate = new RestTemplate();
-			ResponseEntity<String> response = restTemplate
-			  .postForEntity(url, requestEntity, String.class);
-		return response.getBody().toString();
+			ResponseEntity<Object> response = restTemplate
+			  .postForEntity(url, requestEntity, Object.class);
+		return response;
 		
 	}
 
@@ -127,7 +127,7 @@ public class ImageController {
 	}
 	
 	@GetMapping("/{username}/{imageHash}")
-		public ResponseEntity<String> getImage(@PathVariable("username") String username,
+		public ResponseEntity<Object>  getImage(@PathVariable("username") String username,
 				@PathVariable("imageHash") String imageHash) 
 						throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException{
 		restTemplate.setRequestFactory(getRequestFactory());
@@ -139,7 +139,7 @@ public class ImageController {
 				headers.add(AUTHORIZATION, "Bearer " + token);
 				HttpEntity<Void> request = new HttpEntity<>(headers);
 				ResponseEntity<Object> response = restTemplate.exchange(url, HttpMethod.GET, request, Object.class);
-				return ResponseEntity.ok().body(response.getBody().toString());
+				return ResponseEntity.ok().body(response.getBody());
 		}
 		
 	
