@@ -67,19 +67,33 @@ public class ImageController {
 
 	@Autowired
 	private UserService userService;
+	
 
-	@GetMapping("/verifyemail/{emailid}")
-	public String verifyEmail(@PathVariable("emailid") String emailid)
-			throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException {
-		restTemplate.setRequestFactory(getRequestFactory());
-		String url = resourceServerURL+"/account/" + emailid + "/verifyemail";
-		HttpHeaders headers = new HttpHeaders();
-		headers.add(AUTHORIZATION, "Bearer " + token);
-		HttpEntity<Void> request = new HttpEntity<>(headers);
-		ResponseEntity<Object> response = restTemplate.exchange(url, HttpMethod.GET, request, Object.class);
-		return "The response is : " + response.getBody().toString();
-
+	@PostMapping("/register")
+	public ResponseEntity<AppUser> registerUser(@RequestBody AppUser user) {
+		System.out.println("Inside Controller for user : " + user.getName());
+		if(this.userService.findByUsername(user.getUsername()) != null) {
+			throw new UserAlreadyExistsException("User already exists with the given ID.");
+		}
+		return ResponseEntity.ok().body(this.userService.registerUser(user));
 	}
+	
+	
+	@GetMapping("/{username}/{imageHash}")
+		public ResponseEntity<Object>  getImage(@PathVariable("username") String username,
+				@PathVariable("imageHash") String imageHash) 
+						throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException{
+		restTemplate.setRequestFactory(getRequestFactory());
+			if(this.userService.findByUsername(username)  == null) {
+				throw new UsernameNotFoundException("User Not Registered with User ID : " +username +". Please register first.");
+			}
+				String url = resourceServerURL+"/image/" +imageHash;
+				HttpHeaders headers = new HttpHeaders();
+				headers.add(AUTHORIZATION, "Bearer " + token);
+				HttpEntity<Void> request = new HttpEntity<>(headers);
+				ResponseEntity<Object> response = restTemplate.exchange(url, HttpMethod.GET, request, Object.class);
+				return ResponseEntity.ok().body(response.getBody());
+		}
 	
 	@DeleteMapping("/{username}/{deleteHash}")
 	public ResponseEntity<Object> deleteImage(@PathVariable("deleteHash") String deleteHash,@PathVariable("username") String username) throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException {
@@ -116,32 +130,20 @@ public class ImageController {
 		return response;
 		
 	}
-
-	@PostMapping("/register")
-	public ResponseEntity<AppUser> registerUser(@RequestBody AppUser user) {
-		System.out.println("Inside Controller for user : " + user.getName());
-		if(this.userService.findByUsername(user.getUsername()) != null) {
-			throw new UserAlreadyExistsException("User already exists with the given ID.");
-		}
-		return ResponseEntity.ok().body(this.userService.registerUser(user));
-	}
 	
-	@GetMapping("/{username}/{imageHash}")
-		public ResponseEntity<Object>  getImage(@PathVariable("username") String username,
-				@PathVariable("imageHash") String imageHash) 
-						throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException{
+
+	@GetMapping("/verifyemail/{emailid}")
+	public String verifyEmail(@PathVariable("emailid") String emailid)
+			throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException {
 		restTemplate.setRequestFactory(getRequestFactory());
-			if(this.userService.findByUsername(username)  == null) {
-				throw new UsernameNotFoundException("User Not Registered with User ID : " +username +". Please register first.");
-			}
-				String url = resourceServerURL+"/image/" +imageHash;
-				HttpHeaders headers = new HttpHeaders();
-				headers.add(AUTHORIZATION, "Bearer " + token);
-				HttpEntity<Void> request = new HttpEntity<>(headers);
-				ResponseEntity<Object> response = restTemplate.exchange(url, HttpMethod.GET, request, Object.class);
-				return ResponseEntity.ok().body(response.getBody());
-		}
-		
+		String url = resourceServerURL+"/account/" + emailid + "/verifyemail";
+		HttpHeaders headers = new HttpHeaders();
+		headers.add(AUTHORIZATION, "Bearer " + token);
+		HttpEntity<Void> request = new HttpEntity<>(headers);
+		ResponseEntity<Object> response = restTemplate.exchange(url, HttpMethod.GET, request, Object.class);
+		return "The response is : " + response.getBody().toString();
+
+	}
 	
 	public HttpComponentsClientHttpRequestFactory getRequestFactory()
 			throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException{

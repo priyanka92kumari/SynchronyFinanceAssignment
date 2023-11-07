@@ -20,7 +20,7 @@ public class SwaggerConfig {
     public Docket api() {
         return new Docket(DocumentationType.SWAGGER_2)
                 .select()
-                .apis(RequestHandlerSelectors.basePackage("com.example.oauth.client.Oauth.controller"))
+                .apis(RequestHandlerSelectors.basePackage("com.example.oauth.imgur.client.controller"))
                 .paths(PathSelectors.any())
                 .build().apiInfo(apiInfoMetaData());
     }
@@ -29,7 +29,6 @@ public class SwaggerConfig {
 
         return new ApiInfoBuilder().title("API Documentation")
                 .description("Describing the purpose of the API")
-                .contact(new Contact("Dev-Team", "https://www.payment.example.com/", "nzuwera2002@gmail.com"))
                 .license("Apache 2.0")
                 .licenseUrl("http://www.apache.org/licenses/LICENSE-2.0.html")
                 .version("1.0.0")
